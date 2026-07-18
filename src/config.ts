@@ -27,6 +27,7 @@ export const OrbytConfigSchema = z.object({
       components: z.string().default("@/components/ui"),
     })
     .default({ components: "@/components/ui" }),
+  cacheTtlMs: z.number().default(24 * 60 * 60 * 1000), // 24 hours default
   sources: z.record(SourceConfigSchema),
 });
 

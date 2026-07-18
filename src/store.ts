@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import Fuse from "fuse.js";
 import { OrbytComponent, OrbytSearchResult } from "./schema.js";
 
 /**
@@ -58,37 +59,69 @@ export class OrbytStore {
   }
 
   /**
-   * v1 search: naive substring + tag scoring across name/category/tags.
-   * Good enough to prove the schema out. Swap for fuse.js in Phase 03
-   * without changing this method's signature.
+   * Fuzzy search across name/category/tags using fuse.js.
    */
   async search(query: string, opts: { framework?: string; style?: string } = {}): Promise<OrbytSearchResult[]> {
     await this.ensureLoaded();
-    const q = query.toLowerCase();
+    const q = query.trim();
 
-    const results = [...this.cache.values()]
-      .filter((c) => (opts.framework ? c.framework === opts.framework : true))
-      .filter((c) => (opts.style ? c.style === opts.style : true))
-      .map((c) => {
-        let score = 0;
-        if (c.name.toLowerCase().includes(q)) score += 3;
-        if (c.category?.toLowerCase().includes(q)) score += 2;
-        if (c.tags.some((t) => t.toLowerCase().includes(q))) score += 2;
-        if (c.sourceLib.toLowerCase().includes(q)) score += 1;
-        return { component: c, score };
-      })
-      .filter((r) => r.score > 0)
-      .sort((a, b) => b.score - a.score);
+    let components = [...this.cache.values()];
 
-    return results.map(({ component, score }) => ({
-      id: component.id,
-      name: component.name,
-      sourceLib: component.sourceLib,
-      category: component.category,
-      tags: component.tags,
-      framework: component.framework,
-      score,
-    }));
+    if (opts.framework) {
+      components = components.filter((c) => c.framework === opts.framework);
+    }
+    if (opts.style) {
+      components = components.filter((c) => c.style === opts.style);
+    }
+
+    if (!q) {
+      return components.map((c) => ({
+        id: c.id,
+        name: c.name,
+        sourceLib: c.sourceLib,
+        category: c.category,
+        tags: c.tags,
+        framework: c.framework,
+        score: 1,
+      }));
+    }
+
+    const fuse = new Fuse(components, {
+      keys: [
+        { name: "name", weight: 3 },
+        { name: "category", weight: 2 },
+        { name: "tags", weight: 2 },
+        { name: "sourceLib", weight: 1 },
+      ],
+      threshold: 0.4,
+      includeScore: true,
+    });
+
+    const fuseResults = fuse.search(q);
+
+    return fuseResults.map((res) => {
+      const c = res.item;
+      const score = res.score !== undefined ? (1 - res.score) * 5 : 1;
+      return {
+        id: c.id,
+        name: c.name,
+        sourceLib: c.sourceLib,
+        category: c.category,
+        tags: c.tags,
+        framework: c.framework,
+        score,
+      };
+    });
+  }
+
+  async clearSource(sourceLib: string) {
+    await this.ensureLoaded();
+    for (const [id, c] of this.cache.entries()) {
+      if (c.sourceLib === sourceLib) {
+        this.cache.delete(id);
+      }
+    }
+    await this.persist();
   }
 
   /** Components older than maxAgeMs since fetchedAt — candidates for refresh_source. */

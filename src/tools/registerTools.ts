@@ -30,20 +30,23 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
       style: z.string().optional().describe("Filter to one styling approach, e.g. 'tailwind'"),
     },
     async ({ query, framework, style }) => {
-      // Cheap warm: pull fresh catalogs for any source whose cache is
-      // empty or stale before searching the local index. Real
-      // production behavior (TTL length, background refresh) belongs
-      // in Phase 03 — this is the minimum to make search useful today.
       for (const source of sources) {
-        const stale = await store.stale(source.name, ONE_DAY_MS);
         const existing = await store.bySource(source.name);
-        if (existing.length === 0 || stale.length > 0) {
+        const stale = await store.stale(source.name, config.cacheTtlMs);
+        
+        if (existing.length === 0) {
+          // Cold cache: fetch synchronously
           try {
             const fresh = await source.fetchCatalog(query);
             await store.upsertMany(fresh);
           } catch (err) {
             console.error(`[orbyt] ${source.name} catalog fetch failed:`, err);
           }
+        } else if (stale.length > 0) {
+          // Stale cache: refresh in the background
+          source.fetchCatalog(query)
+            .then((fresh) => store.upsertMany(fresh))
+            .catch((err) => console.error(`[orbyt] Background refresh for ${source.name} failed:`, err));
         }
       }
 
@@ -80,46 +83,98 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
 
   server.tool(
     "install_component",
-    "Write a component's files into the target project and report which dependencies still need installing.",
+    "Write a component's files into the target project, merge dependencies, and report Tailwind config updates.",
     {
       id: z.string(),
       targetPath: z.string().optional().describe("Defaults to the configured components alias, e.g. '@/components/ui'"),
+      dryRun: z.boolean().optional().describe("If true, only report what would be done without writing to disk"),
+      acknowledgeLicense: z.boolean().optional().describe("Acknowledge installation of a component with a non-permissive license"),
     },
-    async ({ id, targetPath }) => {
+    async ({ id, targetPath, dryRun = false, acknowledgeLicense = false }) => {
       const component = await store.get(id);
       if (!component) {
         return textResult({ error: `"${id}" isn't in the index yet — run get_component first.` });
       }
+
+      // Framework mismatch check
+      const projectFramework = config.framework;
+      const componentFramework = component.framework;
+      const isReactLike = (fw: string) => fw === "react" || fw === "next";
+      const frameworksMatch =
+        componentFramework === "unknown" ||
+        componentFramework === projectFramework ||
+        (isReactLike(componentFramework) && isReactLike(projectFramework));
+
+      if (!frameworksMatch) {
+        return textResult({
+          error: `Framework mismatch: The component "${id}" is built for ${componentFramework}, but your project is configured for ${projectFramework}.`,
+        });
+      }
+
+      // License check
+      const permissiveLicenses = ["mit", "apache-2.0", "bsd-2-clause", "bsd-3-clause", "isc", "unlicense", "cc0-1.0"];
+      const componentLicense = component.license?.toLowerCase() || "unknown";
+      const isPermissive = permissiveLicenses.includes(componentLicense);
+
+      if (!isPermissive && !acknowledgeLicense) {
+        return textResult({
+          error: `License Warning: The component "${id}" is under a "${component.license || "unknown"}" license. If you wish to proceed, set the "acknowledgeLicense" parameter to true.`,
+        });
+      }
+
       if (component.files.length === 0) {
         return textResult({
           error: `"${id}" has no file contents cached (this is common for proxy sources whose own MCP server installs files itself, e.g. shadcn). Use that source's native install command instead: ${component.installCommand ?? "none provided"}.`,
         });
       }
 
-      const baseDir = targetPath ?? config.aliases.components;
-      const written: string[] = [];
+      const baseAlias = targetPath ?? config.aliases.components;
+      const filesReport: Array<{ path: string; status: "created" | "overwritten"; contentSnippet: string }> = [];
 
       for (const file of component.files) {
-        // targetPath / alias resolution here is deliberately simple —
-        // it assumes a conventional path alias like "@/components/ui"
-        // maps to "src/components/ui" or "components/ui" in the actual
-        // project. Phase 04 should resolve this against the project's
-        // real tsconfig "paths" instead of guessing.
-        const resolvedDir = baseDir.replace(/^@\//, "");
-        const fullPath = path.join(cwd, resolvedDir, path.basename(file.path));
-        await mkdir(path.dirname(fullPath), { recursive: true });
-        await writeFile(fullPath, file.content, "utf-8");
-        written.push(fullPath);
+        // Resolve target file path using robust tsconfig alias resolver
+        const filename = path.basename(file.path);
+        const resolvedBaseDir = await resolvePathAlias(baseAlias, cwd);
+        const fullPath = path.join(resolvedBaseDir, filename);
+
+        let status: "created" | "overwritten" = "created";
+        try {
+          await readFile(fullPath);
+          status = "overwritten";
+        } catch {
+          // File does not exist yet
+        }
+
+        filesReport.push({
+          path: fullPath,
+          status,
+          contentSnippet: file.content.substring(0, 150) + "...",
+        });
+
+        if (!dryRun) {
+          await mkdir(path.dirname(fullPath), { recursive: true });
+          await writeFile(fullPath, file.content, "utf-8");
+        }
       }
 
-      const depReport = await mergePackageJsonDeps(cwd, component.dependencies);
+      // Merge dependencies and resolve latest pinned versions from npm registry
+      const dependenciesReport = await mergePackageJsonDeps(cwd, component.dependencies, dryRun);
+
+      // Simple Tailwind merge summary/alert if required by the component
+      let tailwindConfigUpdate = null;
+      if (component.tailwind) {
+        tailwindConfigUpdate = component.tailwind;
+      }
 
       return textResult({
-        installed: id,
-        filesWritten: written,
-        dependenciesAdded: depReport.added,
-        dependenciesAlreadyPresent: depReport.alreadyPresent,
-        note: depReport.added.length > 0 ? "Run your package manager's install command to pull the new dependencies." : undefined,
+        componentId: id,
+        dryRun,
+        files: filesReport,
+        dependencies: dependenciesReport,
+        tailwindConfigAdditions: tailwindConfigUpdate,
+        message: dryRun
+          ? "This is a dry-run. No files or package dependencies were actually written."
+          : "Component successfully installed.",
       });
     }
   );
@@ -127,18 +182,59 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
   server.tool(
     "get_theme_tokens",
     "Fetch design tokens / CSS variables from a source, where it exposes them, so components pulled from different libraries stay visually consistent.",
-    { sourceLib: z.string() },
-    async ({ sourceLib }) => {
-      // Stub: most sources don't expose tokens through their catalog
-      // response today. This tool exists so the schema and call shape
-      // are settled before Phase 05 wires up real token extraction per
-      // source (shadcn's CSS variables in particular are a good first
-      // target since they're already machine-readable).
+    {
+      sourceLib: z.string().describe("The library to get tokens for, e.g. 'shadcn' or 'magicui'"),
+      baseColor: z.string().optional().describe("The base color palette, e.g. 'zinc', 'slate', 'neutral'. Defaults to 'zinc'"),
+    },
+    async ({ sourceLib, baseColor = "zinc" }) => {
+      const normalizedLib = sourceLib.toLowerCase();
+      if (normalizedLib === "shadcn" || normalizedLib === "magicui") {
+        try {
+          const res = await fetch(`https://ui.shadcn.com/r/colors/${baseColor}.json`);
+          if (res.ok) {
+            const data = await res.json();
+            return textResult({
+              sourceLib,
+              baseColor,
+              tokens: data,
+            });
+          }
+          return textResult({ error: `Could not fetch colors for base color "${baseColor}".` });
+        } catch (err: any) {
+          return textResult({ error: `Failed to fetch theme tokens: ${err.message}` });
+        }
+      }
+
       return textResult({
         sourceLib,
         tokens: null,
-        note: "Token extraction isn't implemented yet for this source — see Phase 05 in the plan.",
+        note: `Token extraction isn't supported/needed for "${sourceLib}". Only 'shadcn' and 'magicui' use standard theme tokens today.`,
       });
+    }
+  );
+
+  server.tool(
+    "refresh_source",
+    "Clear cached components for one source (e.g. 'shadcn' or 'aceternity') and force a fresh sync of its catalog.",
+    { sourceName: z.string().describe("The name of the source library to refresh, e.g. 'aceternity'") },
+    async ({ sourceName }) => {
+      const source = sources.find((s) => s.name === sourceName);
+      if (!source) {
+        return textResult({ error: `Source "${sourceName}" is not registered or enabled in Orbyt configuration.` });
+      }
+
+      try {
+        await store.clearSource(sourceName);
+        const fresh = await source.fetchCatalog();
+        await store.upsertMany(fresh);
+        return textResult({
+          message: `Successfully cleared cache and synchronized catalog for "${sourceName}".`,
+          componentsSynced: fresh.length,
+        });
+      } catch (err: any) {
+        console.error(`[orbyt] Forced refresh for ${sourceName} failed:`, err);
+        return textResult({ error: `Failed to refresh source "${sourceName}": ${err.message}` });
+      }
     }
   );
 }
@@ -147,33 +243,93 @@ function textResult(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
 }
 
-async function mergePackageJsonDeps(cwd: string, deps: string[]) {
-  const pkgPath = path.join(cwd, "package.json");
-  const added: string[] = [];
-  const alreadyPresent: string[] = [];
+async function resolvePathAlias(aliasPath: string, cwd: string): Promise<string> {
+  const fallback = aliasPath.replace(/^@\//, "");
+  try {
+    let configRaw = "";
+    try {
+      configRaw = await readFile(path.join(cwd, "tsconfig.json"), "utf-8");
+    } catch {
+      try {
+        configRaw = await readFile(path.join(cwd, "jsconfig.json"), "utf-8");
+      } catch {
+        return path.join(cwd, fallback);
+      }
+    }
 
-  if (deps.length === 0) return { added, alreadyPresent };
+    const cleanJson = configRaw.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, "$1");
+    const config = JSON.parse(cleanJson);
+    const paths = config?.compilerOptions?.paths;
+    if (!paths) {
+      return path.join(cwd, fallback);
+    }
+
+    for (const [key, value] of Object.entries(paths)) {
+      const keyPrefix = key.replace(/\*$/, "");
+      if (aliasPath.startsWith(keyPrefix)) {
+        const suffix = aliasPath.substring(keyPrefix.length);
+        const targetArr = value as string[];
+        if (targetArr && targetArr.length > 0) {
+          const targetPath = targetArr[0].replace(/\*$/, "");
+          return path.join(cwd, targetPath, suffix);
+        }
+      }
+    }
+  } catch {
+    // Ignore and fallback
+  }
+  return path.join(cwd, fallback);
+}
+
+async function resolveLatestNpmVersion(packageName: string): Promise<string> {
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${packageName}/latest`);
+    if (res.ok) {
+      const data = (await res.json()) as { version?: string };
+      if (data.version) {
+        return `^${data.version}`;
+      }
+    }
+  } catch {
+    // Fallback to latest
+  }
+  return "latest";
+}
+
+async function mergePackageJsonDeps(cwd: string, deps: string[], dryRun = false) {
+  const pkgPath = path.join(cwd, "package.json");
+  const report: Array<{ name: string; version: string; status: "added" | "already_present" }> = [];
+
+  if (deps.length === 0) return report;
 
   try {
     const raw = await readFile(pkgPath, "utf-8");
     const pkg = JSON.parse(raw);
     pkg.dependencies ??= {};
 
-    for (const dep of deps) {
-      if (pkg.dependencies[dep]) {
-        alreadyPresent.push(dep);
+    const resolvedDeps = await Promise.all(
+      deps.map(async (dep) => {
+        const present = !!pkg.dependencies[dep];
+        const version = present ? pkg.dependencies[dep] : await resolveLatestNpmVersion(dep);
+        return { name: dep, version, present };
+      })
+    );
+
+    for (const { name, version, present } of resolvedDeps) {
+      if (present) {
+        report.push({ name, version, status: "already_present" });
       } else {
-        pkg.dependencies[dep] = "latest"; // Phase 04: resolve a real pinned version instead.
-        added.push(dep);
+        report.push({ name, version, status: "added" });
+        pkg.dependencies[name] = version;
       }
     }
 
-    if (added.length > 0) {
+    if (!dryRun && report.some((r) => r.status === "added")) {
       await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
     }
   } catch (err) {
     console.error("[orbyt] couldn't update package.json:", err);
   }
 
-  return { added, alreadyPresent };
+  return report;
 }

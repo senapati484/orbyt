@@ -2,6 +2,7 @@ import { enabledSources, OrbytConfig } from "../config.js";
 import { AceternityAdapter } from "./adapter/aceternity.js";
 import { RegistryJsonAdapter } from "./adapter/registryJsonAdapter.js";
 import { createShadcnSource } from "./proxy/shadcn.js";
+import { createMagicUiSource } from "./proxy/magicui.js";
 import { OrbytSource } from "./types.js";
 
 /**
@@ -20,6 +21,9 @@ export function buildSources(config: OrbytConfig): OrbytSource[] {
       switch (name) {
         case "shadcn":
           sources.push(createShadcnSource(sourceConfig));
+          break;
+        case "magicui":
+          sources.push(createMagicUiSource(sourceConfig));
           break;
         default:
           console.error(

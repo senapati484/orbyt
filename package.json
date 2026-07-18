@@ -29,5 +29,27 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ui",
+    "components",
+    "shadcn",
+    "magicui",
+    "aceternity",
+    "react",
+    "tailwind"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/senapati484/orbyt.git"
+  },
+  "homepage": "https://github.com/senapati484/orbyt#readme",
+  "bugs": {
+    "url": "https://github.com/senapati484/orbyt/issues"
+  },
   "license": "MIT"
 }

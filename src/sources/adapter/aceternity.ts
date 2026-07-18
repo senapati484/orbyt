@@ -1,20 +1,12 @@
-import * as cheerio from "cheerio";
 import { AdapterSourceConfig } from "../../config.js";
 import { OrbytComponent } from "../../schema.js";
 import { OrbytSource } from "../types.js";
 
 /**
- * Aceternity UI has no public registry.json or MCP server, so this
- * adapter scrapes its docs pages instead. This is intentionally a thin
- * stub: `componentSlugs` is a hand-maintained seed list rather than a
- * live crawl, because Aceternity's docs nav isn't a stable machine-
- * readable index. Growing this list (or replacing it with a real crawl
- * of the sitemap) is exactly the kind of thing to do once Phase 02
- * proves the normalized schema holds for scraped sources at all —
- * don't over-invest here before that's confirmed.
+ * Aceternity UI publishes a registry index at /registry.json and individual
+ * component json files containing source code at /registry/[name].json.
+ * This adapter fetches these json files directly.
  */
-const SEED_SLUGS = ["spotlight-card", "3d-card-effect", "background-beams", "sparkles"];
-
 export class AceternityAdapter implements OrbytSource {
   readonly name = "aceternity";
   readonly mode = "adapter" as const;
@@ -24,53 +16,93 @@ export class AceternityAdapter implements OrbytSource {
   async connect(): Promise<void> {}
   async disconnect(): Promise<void> {}
 
-  async fetchCatalog(): Promise<OrbytComponent[]> {
-    const components: OrbytComponent[] = [];
-    for (const slug of SEED_SLUGS) {
-      const component = await this.fetchComponent(`${this.name}/${slug}`);
-      if (component) components.push(component);
+  async fetchCatalog(query?: string): Promise<OrbytComponent[]> {
+    try {
+      const indexUrl = new URL("/registry.json", this.config.baseUrl).toString();
+      const res = await fetch(indexUrl);
+      if (!res.ok) {
+        console.error(`[orbyt] Failed to fetch Aceternity index from ${indexUrl}: ${res.status}`);
+        return [];
+      }
+
+      const indexData = (await res.json()) as { items?: Array<{ name: string; type: string }> };
+      const items = indexData.items ?? [];
+
+      // Filter based on query if provided
+      let filteredItems = items;
+      if (query) {
+        const q = query.toLowerCase();
+        filteredItems = items.filter(
+          (item) => item.name.toLowerCase().includes(q)
+        );
+      }
+
+      // Limit concurrency and total fetches to avoid slamming the server/rate limits
+      const limit = filteredItems.slice(0, 15);
+      const components: OrbytComponent[] = [];
+
+      await Promise.all(
+        limit.map(async (item) => {
+          try {
+            const comp = await this.fetchComponent(`${this.name}/${item.name}`);
+            if (comp) {
+              components.push(comp);
+            }
+          } catch (err) {
+            console.error(`[orbyt] Failed to fetch Aceternity component details for ${item.name}:`, err);
+          }
+        })
+      );
+
+      return components;
+    } catch (err) {
+      console.error("[orbyt] Aceternity fetchCatalog failed:", err);
+      return [];
     }
-    return components;
   }
 
   async fetchComponent(id: string): Promise<OrbytComponent | null> {
     const slug = id.split("/").slice(1).join("/");
-    const url = new URL(`/components/${slug}`, this.config.baseUrl).toString();
+    const url = new URL(`/registry/${slug}.json`, this.config.baseUrl).toString();
+    const sourceUrl = new URL(`/components/${slug}`, this.config.baseUrl).toString();
 
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      return null;
+    }
 
-    const html = await res.text();
-    const $ = cheerio.load(html);
+    const item = (await res.json()) as {
+      name: string;
+      title?: string;
+      type?: string;
+      dependencies?: string[];
+      files?: Array<{ path: string; content: string }>;
+      registryDependencies?: string[];
+      tailwind?: Record<string, any>;
+    };
 
-    // TODO: this selector needs to be confirmed against the live docs
-    // page structure — Aceternity's docs are built on Nextra/Fumadocs-
-    // style rendering and the exact code-block container class will
-    // need a real inspection pass rather than guessing here.
-    const codeBlock = $("pre code").first().text();
-    const title = $("h1").first().text().trim() || slug;
-
-    if (!codeBlock) return null;
+    const files = Array.isArray(item.files)
+      ? item.files.map((f) => ({
+          path: f.path,
+          content: f.content,
+        }))
+      : [];
 
     return {
       id,
-      name: title,
+      name: item.title || item.name,
       sourceLib: this.name,
-      category: "effect",
+      category: item.type || "registry:ui",
       tags: ["animated"],
       framework: "react",
       style: "tailwind",
-      dependencies: ["framer-motion"],
-      files: [
-        {
-          path: `components/ui/${slug}.tsx`,
-          content: codeBlock,
-        },
-      ],
-      installCommand: null,
-      previewImage: null,
+      dependencies: item.dependencies || [],
+      files,
+      installCommand: `npx shadcn@latest add ${url}`,
+      previewImage: ((item as any).image as string) || ((item as any).thumbnail as string) || null,
       license: "MIT",
-      sourceUrl: url,
+      sourceUrl,
+      tailwind: item.tailwind,
       fetchedAt: new Date().toISOString(),
     };
   }

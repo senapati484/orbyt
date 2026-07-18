@@ -27,6 +27,7 @@ export const OrbytComponentSchema = z.object({
   previewImage: z.string().nullable().default(null),
   license: z.string().nullable().default(null),
   sourceUrl: z.string().nullable().default(null),
+  tailwind: z.record(z.any()).optional(), // Store tailwind config updates
   fetchedAt: z.string(), // ISO timestamp, drives TTL refresh
 });
 

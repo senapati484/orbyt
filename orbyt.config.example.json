@@ -4,6 +4,7 @@
   "aliases": {
     "components": "@/components/ui"
   },
+  "cacheTtlMs": 86400000,
   "sources": {
     "shadcn": {
       "mode": "proxy",
@@ -13,9 +14,9 @@
     },
     "magicui": {
       "mode": "proxy",
-      "enabled": false,
+      "enabled": true,
       "command": "npx",
-      "args": ["@magicui/mcp"]
+      "args": ["@magicuidesign/mcp"]
     },
     "aceternity": {
       "mode": "adapter",
