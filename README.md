@@ -22,13 +22,13 @@ One Model Context Protocol (MCP) server to rule them all. Orbyt is the unified c
 graph TD
     Orbyt[("🪐 Orbyt MCP (Ingestion Hub)")]
     
-    subgraph Proxy Servers (Lane A)
+    subgraph lane_a ["Proxy Servers (Lane A)"]
         Shadcn["shadcn/ui MCP"]
         MagicUI["Magic UI MCP"]
         21st["21st.dev MCP"]
     end
     
-    subgraph Adapter Sources (Lane B)
+    subgraph lane_b ["Adapter Sources (Lane B)"]
         Aceternity["Aceternity UI"]
         ReactBits["React Bits"]
         OriginUI["Origin UI"]
