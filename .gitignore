@@ -1,0 +1,6 @@
+node_modules
+dist
+.orbyt
+orbyt.config.json
+.mcp.json
+*.log

@@ -1,0 +1,26 @@
+{
+  "framework": "next",
+  "styling": "tailwind",
+  "aliases": {
+    "components": "@/components/ui"
+  },
+  "sources": {
+    "shadcn": {
+      "mode": "proxy",
+      "enabled": true,
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "magicui": {
+      "mode": "proxy",
+      "enabled": false,
+      "command": "npx",
+      "args": ["@magicui/mcp"]
+    },
+    "aceternity": {
+      "mode": "adapter",
+      "enabled": true,
+      "baseUrl": "https://ui.aceternity.com"
+    }
+  }
+}

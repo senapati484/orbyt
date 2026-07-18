@@ -1,0 +1,33 @@
+{
+  "name": "orbyt",
+  "version": "0.1.0",
+  "description": "One MCP server that proxies UI-component sources with their own MCP server and adapts the ones that don't, behind a single normalized tool surface.",
+  "type": "module",
+  "bin": {
+    "orbyt": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "cheerio": "^1.0.0",
+    "fuse.js": "^7.5.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
