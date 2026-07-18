@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, access } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 
@@ -37,15 +37,34 @@ export type AdapterSourceConfig = z.infer<typeof AdapterSourceSchema>;
 
 const DEFAULT_CONFIG_FILENAME = "orbyt.config.json";
 
+export async function findConfigDir(startDir: string): Promise<string | null> {
+  let dir = path.resolve(startDir);
+  while (true) {
+    const configPath = path.join(dir, DEFAULT_CONFIG_FILENAME);
+    try {
+      await access(configPath);
+      return dir;
+    } catch {
+      const parent = path.dirname(dir);
+      if (parent === dir) {
+        break; // Reached system root
+      }
+      dir = parent;
+    }
+  }
+  return null;
+}
+
 export async function loadConfig(cwd = process.cwd()): Promise<OrbytConfig> {
-  const configPath = path.join(cwd, DEFAULT_CONFIG_FILENAME);
+  const resolvedDir = await findConfigDir(cwd) || cwd;
+  const configPath = path.join(resolvedDir, DEFAULT_CONFIG_FILENAME);
 
   let raw: string;
   try {
     raw = await readFile(configPath, "utf-8");
   } catch {
     throw new Error(
-      `No ${DEFAULT_CONFIG_FILENAME} found in ${cwd}.\n` +
+      `No ${DEFAULT_CONFIG_FILENAME} found walking up from ${cwd}.\n` +
         `Run "npx orbyt init --client claude" first, or copy orbyt.config.example.json.`
     );
   }
@@ -61,3 +80,4 @@ export async function loadConfig(cwd = process.cwd()): Promise<OrbytConfig> {
 export function enabledSources(config: OrbytConfig) {
   return Object.entries(config.sources).filter(([, source]) => source.enabled);
 }
+

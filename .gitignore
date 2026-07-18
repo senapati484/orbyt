@@ -3,4 +3,7 @@ dist
 .orbyt
 orbyt.config.json
 .mcp.json
+.vscode/mcp.json
+.cursor/mcp.json
+.windsurf/mcp.json
 *.log

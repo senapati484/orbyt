@@ -102,25 +102,7 @@ async function writeOrbytConfig() {
   }
 }
 
-async function writeClientConfig(client: string) {
-  const normalized = client.toLowerCase();
-  
-  let configFilename = ".mcp.json";
-  let relativePath = ".mcp.json";
-
-  if (normalized === "cursor") {
-    configFilename = ".cursor/mcp.json";
-    relativePath = path.join(".cursor", "mcp.json");
-  } else if (normalized === "vscode") {
-    configFilename = ".vscode/mcp.json";
-    relativePath = path.join(".vscode", "mcp.json");
-  } else if (normalized === "windsurf") {
-    configFilename = ".windsurf/mcp.json";
-    relativePath = path.join(".windsurf", "mcp.json");
-  } else if (normalized !== "claude") {
-    console.log(`--client ${client} is not natively supported. Defaulting to Claude Code configuration.`);
-  }
-
+async function writeSingleClientConfig(relativePath: string, clientName: string) {
   const mcpConfigPath = path.join(cwd, relativePath);
   let existing: Record<string, unknown> = {};
   try {
@@ -138,7 +120,37 @@ async function writeClientConfig(client: string) {
 
   await mkdir(path.dirname(mcpConfigPath), { recursive: true });
   await writeFile(mcpConfigPath, JSON.stringify({ ...existing, mcpServers }, null, 2) + "\n", "utf-8");
-  console.log(`Wrote ${configFilename} entry for ${client}.`);
+  console.log(`Wrote ${relativePath} entry for ${clientName}.`);
+}
+
+async function writeClientConfig(client: string) {
+  const normalized = client.toLowerCase();
+  
+  if (normalized === "all") {
+    await writeSingleClientConfig(".mcp.json", "Claude/General");
+    await writeSingleClientConfig(".vscode/mcp.json", "VS Code");
+    await writeSingleClientConfig(".cursor/mcp.json", "Cursor");
+    await writeSingleClientConfig(".windsurf/mcp.json", "Windsurf");
+    return;
+  }
+
+  let relativePath = ".mcp.json";
+  let name = "Claude/General";
+
+  if (normalized === "cursor") {
+    relativePath = path.join(".cursor", "mcp.json");
+    name = "Cursor";
+  } else if (normalized === "vscode") {
+    relativePath = path.join(".vscode", "mcp.json");
+    name = "VS Code";
+  } else if (normalized === "windsurf") {
+    relativePath = path.join(".windsurf", "mcp.json");
+    name = "Windsurf";
+  } else if (normalized !== "claude") {
+    console.log(`--client ${client} is not natively supported. Defaulting to Claude Code configuration.`);
+  }
+
+  await writeSingleClientConfig(relativePath, name);
 }
 
 main().catch((err) => {
