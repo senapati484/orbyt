@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrbytConfig",
+  "type": "object",
+  "properties": {
+    "framework": {
+      "type": "string",
+      "enum": ["next", "react", "vue", "svelte", "solid", "react-native"],
+      "default": "react"
+    },
+    "styling": {
+      "type": "string",
+      "enum": ["tailwind", "css-modules", "styled-components", "plain-css"],
+      "default": "tailwind"
+    },
+    "aliases": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "string",
+          "default": "@/components/ui"
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "components": "@/components/ui"
+      }
+    },
+    "cacheTtlMs": {
+      "type": "number",
+      "default": 86400000
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "const": "proxy"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "command": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["mode", "command"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "const": "adapter"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "baseUrl": {
+                "type": "string"
+              },
+              "registryJsonPath": {
+                "type": "string"
+              }
+            },
+            "required": ["mode", "baseUrl"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": ["sources"],
+  "additionalProperties": false
+}

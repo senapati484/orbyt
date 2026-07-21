@@ -11,6 +11,13 @@
 
 <br>
 
+<div align="center">
+  <img src="https://mermaid.ink/svg/pako:lVTtbtMwFH2Vq1TjDw1rCltHVlVKtlZDAg11gDRRfrj2XWrq2JHjsnbT3mFvwH-ejkfAqfuVJqLQP773-ujonHOdPnpUMfRCL9Ekm8D74UiC_R0dwY2aaYq56_MJYVR-HXmuOJ7xkfctDENBJEYOkpKEU4v4UJzw-V09oB3kxoKK4xXDH7BEV6CEokEtuVlYbLRpSqyxg2ok1Iy5yS1yWNQQ26YCU5onvDBwvSwsE7yEVGksIdfY8aIQ-fvnr2e4Hsa3n7pj3evmKRGiJ5W2J39ABlwynHeP3dzxTGZjx5Fp9R1pwXJrc4SPrt3hueMCc7jX3BiUVgvDLIcUdYKsTLliWouzm7lQUtoJV7K0HfD9ntO-k3ftsEh__2Ib-f7NJuH9C5dpdWrL5bCq_AtqwykREAmeyBSlgSsUGeo9H77TWfbhb8VXvfg7BmoM-VsXVVP-ysmO0BuzEFwm8AIuBMnz9WdAi-YS72D5VsHuUISNVtzqB2-audFqimHjpN-PLtetf8-ZmYRBNm9SJZQOG_1OPxq0zmv44nq-qHMWD6L_5LPvcMUWtIPTYPBXde1DbKtF1jMOTqLT9uvDjJtsrzhDsPAZNTNt3wLZvAUb-XSVdFEWS0DoQIm6lc3P9yFnhyFvD0OC1j9ggirGa3r2u00JZ1746JkJpsX_KSN66j09_QE" alt="Orbyt Ingestion Diagram" width="100%" />
+</div>
+
+<details>
+<summary>Show Mermaid Source</summary>
+
 ```mermaid
 graph LR
     %% Sources
@@ -53,6 +60,7 @@ graph LR
     linkStyle 10 stroke-width:0px;
     linkStyle 11 stroke-width:0px;
 ```
+</details>
 
 <div align="center">
   <p><i>Two ingestion lanes, one normalized component, one install path.</i></p>

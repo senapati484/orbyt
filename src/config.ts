@@ -20,7 +20,7 @@ const AdapterSourceSchema = z.object({
 const SourceConfigSchema = z.discriminatedUnion("mode", [ProxySourceSchema, AdapterSourceSchema]);
 
 export const OrbytConfigSchema = z.object({
-  framework: z.enum(["next", "react", "vue", "svelte", "react-native"]).default("react"),
+  framework: z.enum(["next", "react", "vue", "svelte", "solid", "react-native"]).default("react"),
   styling: z.enum(["tailwind", "css-modules", "styled-components", "plain-css"]).default("tailwind"),
   aliases: z
     .object({

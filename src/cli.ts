@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline";
-import { fileURLToPath } from "node:url";
 import { runServer } from "./index.js";
 
 const args = process.argv.slice(2);
@@ -48,8 +47,6 @@ async function promptYesNo(question: string, defaultValue: boolean): Promise<boo
 
 async function writeOrbytConfig() {
   const target = path.join(cwd, "orbyt.config.json");
-  const exampleUrl = new URL("../orbyt.config.example.json", import.meta.url);
-  const examplePath = fileURLToPath(exampleUrl);
 
   try {
     await readFile(target, "utf-8");
@@ -68,27 +65,29 @@ async function writeOrbytConfig() {
 
       const configObj = {
         $schema: "./node_modules/orbyt/schema/config.schema.json",
+        framework,
+        styling,
         aliases: {
           components: componentsAlias,
-          utils: "@/lib/utils",
         },
         cacheTtlMs: 86400000,
         sources: {
-          proxy: {
-            shadcn: {
-              enabled: enableShadcn,
-              command: "npx shadcn@latest mcp",
-            },
-            magicui: {
-              enabled: enableMagicUi,
-              command: "npx @magicuidesign/mcp@latest",
-            },
+          shadcn: {
+            mode: "proxy",
+            enabled: enableShadcn,
+            command: "npx",
+            args: ["shadcn@latest", "mcp"],
           },
-          adapter: {
-            aceternity: {
-              enabled: enableAceternity,
-              baseUrl: "https://ui.aceternity.com",
-            },
+          magicui: {
+            mode: "proxy",
+            enabled: enableMagicUi,
+            command: "npx",
+            args: ["@magicuidesign/mcp"],
+          },
+          aceternity: {
+            mode: "adapter",
+            enabled: enableAceternity,
+            baseUrl: "https://ui.aceternity.com",
           },
         },
       };
@@ -96,7 +95,35 @@ async function writeOrbytConfig() {
       await writeFile(target, JSON.stringify(configObj, null, 2) + "\n", "utf-8");
       console.log("Wrote customized orbyt.config.json successfully.");
     } else {
-      await copyFile(examplePath, target);
+      const defaultConfigObj = {
+        $schema: "./node_modules/orbyt/schema/config.schema.json",
+        framework: "next",
+        styling: "tailwind",
+        aliases: {
+          components: "@/components/ui",
+        },
+        cacheTtlMs: 86400000,
+        sources: {
+          shadcn: {
+            mode: "proxy",
+            enabled: true,
+            command: "npx",
+            args: ["shadcn@latest", "mcp"],
+          },
+          magicui: {
+            mode: "proxy",
+            enabled: true,
+            command: "npx",
+            args: ["@magicuidesign/mcp"],
+          },
+          aceternity: {
+            mode: "adapter",
+            enabled: true,
+            baseUrl: "https://ui.aceternity.com",
+          },
+        },
+      };
+      await writeFile(target, JSON.stringify(defaultConfigObj, null, 2) + "\n", "utf-8");
       console.log("Wrote default orbyt.config.json (non-interactive environment).");
     }
   }
