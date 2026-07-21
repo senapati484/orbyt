@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.3] - 2026-07-21
+## [0.1.21] - 2026-07-21
 
 ### Fixed
 - Fixed raw GitHub 404 for private repository diagram asset by referencing the SVG asset via a relative path.
