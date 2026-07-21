@@ -11,7 +11,7 @@ export async function runServer(cwd = process.cwd()) {
   const sources = buildSources(config);
   const store = new OrbytStore(resolvedCwd);
 
-  const server = new McpServer({ name: "orbyt", version: "0.1.0" });
+  const server = new McpServer({ name: "orbyt", version: "0.1.1" });
 
   registerTools(server, { config, store, sources, cwd: resolvedCwd });
 

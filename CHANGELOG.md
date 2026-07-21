@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-07-21
+
+### Fixed
+- Fixed config schema validation mismatch in interactive prompt (flat source structure).
+- Embedded default configuration directly into CLI to support non-interactive setup without depending on unbundled files.
+- Added missing JSON schema file and bundled it in NPM release.
+- Added `solid` to allowed frameworks list in configuration schema.
+- Pre-rendered Mermaid ingestion diagram in README as a raw Base64 SVG so it renders properly on npmjs.com.
+
 ## [0.1.0] - 2026-07-18
 
 ### Added
