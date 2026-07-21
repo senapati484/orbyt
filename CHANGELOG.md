@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2026-07-21
+
+### Fixed
+- Replaced dynamic Mermaid diagram Base64 URL with static SVG asset hosted on GitHub to resolve npmjs.com README parsing and display issues.
+
 ## [0.1.1] - 2026-07-21
 
 ### Fixed

@@ -12,55 +12,9 @@
 <br>
 
 <div align="center">
-  <img src="https://mermaid.ink/svg/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICAlJSBTb3VyY2VzXG4gICAgc2hhZGNuW1wic2hhZGNuL3VpXCJdOjo6bGFuZUFcbiAgICBtYWdpY1tcIk1hZ2ljIFVJXCJdOjo6bGFuZUFcbiAgICBtYWdpYzIxc3RbXCIyMXN0LmRldiBNYWdpY1wiXTo6OmxhbmVBXG4gICAgYWNldGVybml0eVtcIkFjZXRlcm5pdHkgVUlcIl06OjpsYW5lQlxuICAgIHJlYWN0Yml0c1tcIlJlYWN0IEJpdHNcIl06OjpsYW5lQlxuICAgIG9yaWdpbltcIk9yaWdpbiBVSSArIG1vcmVcIl06OjpsYW5lQlxuXG4gICAgb3JieXRbXCLwn6qQIE9SQllUPGJyPjxzbWFsbD5ub3JtYWxpemVkIGluZGV4PC9zbWFsbD5cIl06OjpodWJcbiAgICBwcm9qZWN0W1wiWW91ciBQcm9qZWN0PGJyPjxzbWFsbD5maWxlcyB3cml0dGVuICsgZGVwcyBtZXJnZWQ8L3NtYWxsPlwiXTo6OnByb2plY3RcblxuICAgICUlIENvbm5lY3Rpb25zXG4gICAgc2hhZGNuIC0tPiBvcmJ5dFxuICAgIG1hZ2ljIC0tPiBvcmJ5dFxuICAgIG1hZ2ljMjFzdCAtLT4gb3JieXRcbiAgICBhY2V0ZXJuaXR5IC0tPiBvcmJ5dFxuICAgIHJlYWN0Yml0cyAtLT4gb3JieXRcbiAgICBvcmlnaW4gLS0+IG9yYnl0XG4gICAgb3JieXQgLS0+IHByb2plY3RcblxuICAgICUlIFZlcnRpY2FsIEFsaWdubWVudCBIZWxwZXJcbiAgICBzaGFkY24gLS0tIG1hZ2ljXG4gICAgbWFnaWMgLS0tIG1hZ2ljMjFzdFxuICAgIG1hZ2ljMjFzdCAtLS0gYWNldGVybml0eVxuICAgIGFjZXRlcm5pdHkgLS0tIHJlYWN0Yml0c1xuICAgIHJlYWN0Yml0cyAtLS0gb3JpZ2luXG5cbiAgICAlJSBTdHlsaW5nICYgQ2xhc3Nlc1xuICAgIGNsYXNzRGVmIGxhbmVBIGZpbGw6IzBCMEUxNCxzdHJva2U6IzVFRUFENCxzdHJva2Utd2lkdGg6MXB4LGNvbG9yOiNFN0VBRjA7XG4gICAgY2xhc3NEZWYgbGFuZUIgZmlsbDojMEIwRTE0LHN0cm9rZTojQTc4QkZBLHN0cm9rZS13aWR0aDoxcHgsY29sb3I6I0U3RUFGMDtcbiAgICBjbGFzc0RlZiBodWIgZmlsbDojMTIxNjFGLHN0cm9rZTojNUVFQUQ0LHN0cm9rZS13aWR0aDoycHgsY29sb3I6I0U3RUFGMDtcbiAgICBjbGFzc0RlZiBwcm9qZWN0IGZpbGw6IzEyMTYxRixzdHJva2U6I0Y1QTYyMyxzdHJva2Utd2lkdGg6MnB4LGNvbG9yOiNFN0VBRjA7XG5cbiAgICAlJSBIaWRlIHN0cnVjdHVyYWwgYWxpZ25tZW50IGxpbmtzXG4gICAgbGlua1N0eWxlIDcgc3Ryb2tlLXdpZHRoOjBweDtcbiAgICBsaW5rU3R5bGUgOCBzdHJva2Utd2lkdGg6MHB4O1xuICAgIGxpbmtTdHlsZSA5IHN0cm9rZS13aWR0aDowcHg7XG4gICAgbGlua1N0eWxlIDEwIHN0cm9rZS13aWR0aDowcHg7XG4gICAgbGlua1N0eWxlIDExIHN0cm9rZS13aWR0aDowcHg7IiwibWVybWFpZCI6eyJ0aGVtZSI6ImRhcmsifX0=" alt="Orbyt Ingestion Diagram" width="100%" />
+  <img src="https://raw.githubusercontent.com/senapati484/orbyt/main/assets/diagram.svg" alt="Orbyt Ingestion Diagram" width="100%" />
 </div>
 
-<details>
-<summary>Show Mermaid Source</summary>
-
-```mermaid
-graph LR
-    %% Sources
-    shadcn["shadcn/ui"]:::laneA
-    magic["Magic UI"]:::laneA
-    magic21st["21st.dev Magic"]:::laneA
-    aceternity["Aceternity UI"]:::laneB
-    reactbits["React Bits"]:::laneB
-    origin["Origin UI + more"]:::laneB
-
-    orbyt["🪐 ORBYT<br><small>normalized index</small>"]:::hub
-    project["Your Project<br><small>files written + deps merged</small>"]:::project
-
-    %% Connections
-    shadcn --> orbyt
-    magic --> orbyt
-    magic21st --> orbyt
-    aceternity --> orbyt
-    reactbits --> orbyt
-    origin --> orbyt
-    orbyt --> project
-
-    %% Vertical Alignment Helper
-    shadcn --- magic
-    magic --- magic21st
-    magic21st --- aceternity
-    aceternity --- reactbits
-    reactbits --- origin
-
-    %% Styling & Classes
-    classDef laneA fill:#0B0E14,stroke:#5EEAD4,stroke-width:1px,color:#E7EAF0;
-    classDef laneB fill:#0B0E14,stroke:#A78BFA,stroke-width:1px,color:#E7EAF0;
-    classDef hub fill:#12161F,stroke:#5EEAD4,stroke-width:2px,color:#E7EAF0;
-    classDef project fill:#12161F,stroke:#F5A623,stroke-width:2px,color:#E7EAF0;
-
-    %% Hide structural alignment links
-    linkStyle 7 stroke-width:0px;
-    linkStyle 8 stroke-width:0px;
-    linkStyle 9 stroke-width:0px;
-    linkStyle 10 stroke-width:0px;
-    linkStyle 11 stroke-width:0px;
-```
-</details>
 
 <div align="center">
   <p><i>Two ingestion lanes, one normalized component, one install path.</i></p>

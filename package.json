@@ -1,6 +1,6 @@
 {
   "name": "orbyt",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "One MCP server that proxies UI-component sources with their own MCP server and adapts the ones that don't, behind a single normalized tool surface.",
   "type": "module",
   "bin": {

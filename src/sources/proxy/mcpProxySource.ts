@@ -42,7 +42,7 @@ export class McpProxySource implements OrbytSource {
       env: this.config.env,
     });
 
-    const client = new Client({ name: `orbyt-proxy-${this.name}`, version: "0.1.1" });
+    const client = new Client({ name: `orbyt-proxy-${this.name}`, version: "0.1.2" });
     await client.connect(transport);
     this.client = client;
 
