@@ -143,4 +143,4 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)** â
 - **Author:** [senapati484](https://github.com/senapati484) (Sayan Senapati)
 - **GitHub Repository:** [senapati484/orbyt](https://github.com/senapati484/orbyt)
 - **NPM Package:** [orbyt](https://www.npmjs.com/package/orbyt)
-- **Full License Text:** See the [LICENSE](https://github.com/senapati484/orbyt/blob/main/LICENSE) file for complete details.
+- **Full License Text:** See the [LICENSE](https://raw.githubusercontent.com/senapati484/orbyt/main/LICENSE) file for complete details.
