@@ -5,10 +5,10 @@
 [![NPM Version](https://img.shields.io/npm/v/orbyt.svg?style=for-the-badge&logo=npm&color=5EEAD4&logoColor=0B0E14)](https://www.npmjs.com/package/orbyt)
 [![NPM Downloads](https://img.shields.io/npm/dm/orbyt.svg?style=for-the-badge&logo=npm&color=A78BFA&logoColor=0B0E14)](https://www.npmjs.com/package/orbyt)
 [![GitHub Stars](https://img.shields.io/github/stars/senapati484/orbyt.svg?style=for-the-badge&logo=github&color=38BDF8&logoColor=white)](https://github.com/senapati484/orbyt)
-[![License](https://img.shields.io/github/license/senapati484/orbyt.svg?style=for-the-badge&color=F5A623&logoColor=white)](https://github.com/senapati484/orbyt/blob/main/LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge&logo=gnu&logoColor=white)](https://github.com/senapati484/orbyt/blob/main/LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Model_Context_Protocol-8A2BE2?style=for-the-badge&logoColor=white)](https://modelcontextprotocol.io)
 
-  <h3><b>into your AI's hands.</b></h3>
+  <h3><b>One meta-server. Every UI library, into your AI's hands.</b></h3>
   <p>A single MCP server that proxies the component libraries that already speak MCP, adapts the ones that don't, and hands your AI assistant one consistent way to search, fetch, and install UI — instead of ten different tools with ten different shapes.</p>
 </div>
 
@@ -19,16 +19,15 @@
 <br>
 
 <div align="center">
-  <img width="1536" height="1024" alt="ChatGPT Image Jul 21, 2026 at 12_33_16 PM" src="https://github.com/user-attachments/assets/a74abd94-597a-4575-bf4c-bb10365dbe12" />
+  <img width="1536" height="1024" alt="Orbyt architecture diagram" src="https://github.com/user-attachments/assets/a74abd94-597a-4575-bf4c-bb10365dbe12" />
 </div>
-
 
 <div align="center">
   <p><i>Two ingestion lanes, one normalized component, one install path.</i></p>
-  <span>
-    <font color="#5EEAD4">■</font> <b>Lane A</b> – proxy (has MCP) &nbsp;&nbsp;&nbsp;&nbsp;
-    <font color="#A78BFA">■</font> <b>Lane B</b> – adapter (scrape/registry)
-  </span>
+  <p>
+    <font color="#5EEAD4">■</font> <b>Lane A</b> — proxy (has MCP) &nbsp;&nbsp;&nbsp;&nbsp;
+    <font color="#A78BFA">■</font> <b>Lane B</b> — adapter (scrape/registry)
+  </p>
 </div>
 
 ---
@@ -36,14 +35,19 @@
 ## ⚡ Quick Start
 
 ### 1. Install & Initialize
-Run the interactive onboarding CLI in your project root. It will create `orbyt.config.json` and configure your editor of choice:
+
+Run the interactive onboarding CLI in your project root. It creates `orbyt.config.json` and configures your editor of choice:
+
 ```bash
 npx orbyt init --client claude
 ```
-*(Supports `--client cursor`, `--client vscode`, `--client windsurf`, and `--client claude`)*
+
+*(Also supports `--client cursor`, `--client vscode`, and `--client windsurf`)*
 
 ### 2. Configure Sources
-Customize enabled sources in `orbyt.config.json` (created in your project root):
+
+Customize enabled sources in `orbyt.config.json`, created in your project root:
+
 ```json
 {
   "framework": "next",
@@ -60,7 +64,9 @@ Customize enabled sources in `orbyt.config.json` (created in your project root):
 ```
 
 ### 3. Run
-Launch the server in stdio mode (usually handled automatically by your editor/client):
+
+Launch the server in stdio mode — usually handled automatically by your editor or client:
+
 ```bash
 npx orbyt
 ```
@@ -69,25 +75,25 @@ npx orbyt
 
 ## ✨ Features
 
-- **Ingestion Lanes**: 
-  - **Lane A (Proxy)**: Communicates over stdio with existing MCP servers (e.g. shadcn, Magic UI) and translates their outputs.
-  - **Lane B (Adapter)**: Directly reads public JSON registries of non-MCP libraries (e.g. Aceternity, React Bits, Origin UI) for clean component fetches without HTML scraping.
-- **Fuzzy Matching**: Powered by `fuse.js` to rank and find components by keywords, description, categories, and tags.
-- **Background Sync**: Stale cache entries refresh silently in the background, keeping searches fast.
-- **Robust Path Resolution**: Dynamically reads local `tsconfig.json` or `jsconfig.json` to resolve custom path aliases (like `@/*` or `~/*`) to the correct local directories.
-- **Pinned Dependency Merging**: Query NPM registry to resolve exact latest versions of dependencies and merge them cleanly into the project's `package.json`.
-- **Framework & License Guardrails**: Fails loudly and safely if you attempt to install a framework-mismatched or non-permissive licensed component.
+- **Ingestion Lanes**
+  - **Lane A (Proxy)** — Communicates over stdio with existing MCP servers (e.g. shadcn, Magic UI) and translates their outputs.
+  - **Lane B (Adapter)** — Directly reads public JSON registries of non-MCP libraries (e.g. Aceternity, React Bits, Origin UI) for clean component fetches without HTML scraping.
+- **Fuzzy Matching** — Powered by `fuse.js` to rank and find components by keyword, description, category, and tag.
+- **Background Sync** — Stale cache entries refresh silently in the background, keeping searches fast.
+- **Robust Path Resolution** — Dynamically reads local `tsconfig.json` or `jsconfig.json` to resolve custom path aliases (like `@/*` or `~/*`) to the correct local directories.
+- **Pinned Dependency Merging** — Queries the NPM registry to resolve exact latest versions of dependencies and merges them cleanly into the project's `package.json`.
+- **Framework & License Guardrails** — Fails loudly and safely if you attempt to install a framework-mismatched or non-permissively-licensed component.
 
 ---
 
 ## 🛠️ Tool Surface
 
-Orbyt keeps the context window clean by exposing a minimal, highly-specialized tool set:
+Orbyt keeps the context window clean by exposing a minimal, highly specialized tool set:
 
 | Tool | Parameters | Description |
 |------|------------|-------------|
 | **`list_sources`** | None | Returns connected sources, status, and configuration details. |
-| **`search_components`** | `query: string`<br>`framework?: string`<br>`style?: string` | Performs weighted fuzzy search over local index with lazy background revalidation. |
+| **`search_components`** | `query: string`<br>`framework?: string`<br>`style?: string` | Performs weighted fuzzy search over the local index with lazy background revalidation. |
 | **`get_component`** | `id: string` | Fetches complete file contents, dependencies, and metadata for a specific component. |
 | **`install_component`** | `id: string`<br>`targetPath?: string`<br>`dryRun?: boolean`<br>`acknowledgeLicense?: boolean` | Installs component code, resolves and merges `package.json` dependencies, and returns Tailwind config additions. |
 | **`get_theme_tokens`** | `sourceLib: string`<br>`baseColor?: string` | Fetches CSS variable configuration tokens from the source library. |
@@ -121,8 +127,8 @@ src/
     registry.ts               Sources registration dispatcher
     proxy/
       mcpProxySource.ts       Plumbing wrapper for spawning sub-MCP server processes
-      shadcn.ts               Proxy mapper for shadcn/ui mcp server
-      magicui.ts              Proxy mapper for Magic UI mcp server
+      shadcn.ts               Proxy mapper for shadcn/ui MCP server
+      magicui.ts              Proxy mapper for Magic UI MCP server
     adapter/
       registryJsonAdapter.ts  Universal adapter for registry.json endpoints
       aceternity.ts           Adapter for Aceternity UI component schema
@@ -132,4 +138,9 @@ src/
 
 ## 📜 License
 
-MIT License. Feel free to copy, modify, and distribute.
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)** — a Strong Copyleft license guaranteeing end users the freedom to run, study, share, and modify the software.
+
+- **Author:** [senapati484](https://github.com/senapati484) (Sayan Senapati)
+- **GitHub Repository:** [senapati484/orbyt](https://github.com/senapati484/orbyt)
+- **NPM Package:** [orbyt](https://www.npmjs.com/package/orbyt)
+- **Full License Text:** See the [LICENSE](https://github.com/senapati484/orbyt/blob/main/LICENSE) file for complete details.
