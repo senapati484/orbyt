@@ -12,7 +12,7 @@
 <br>
 
 <div align="center">
-  <img src="./assets/diagram.svg" alt="Orbyt Ingestion Diagram" width="100%" />
+  <img src="https://raw.githubusercontent.com/senapati484/orbyt/main/assets/diagram.svg" alt="Orbyt Ingestion Diagram" width="100%" />
 </div>
 
 
