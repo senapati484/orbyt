@@ -140,7 +140,7 @@ src/
 
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)** — a Strong Copyleft license guaranteeing end users the freedom to run, study, share, and modify the software.
 
-- **Author:** [senapati484](https://github.com/senapati484) (Sayan Senapati)
+- **Author:** [Sayan Senapati](https://sayan4.vercel.app)
 - **GitHub Repository:** [senapati484/orbyt](https://github.com/senapati484/orbyt)
 - **NPM Package:** [orbyt](https://www.npmjs.com/package/orbyt)
 - **Full License Text:** See the [LICENSE](https://raw.githubusercontent.com/senapati484/orbyt/main/LICENSE) file for complete details.
