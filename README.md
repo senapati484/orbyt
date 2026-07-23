@@ -1,6 +1,13 @@
 # 🪐 Orbyt
 
 <div align="center">
+
+[![NPM Version](https://img.shields.io/npm/v/orbyt.svg?style=for-the-badge&logo=npm&color=5EEAD4&logoColor=0B0E14)](https://www.npmjs.com/package/orbyt)
+[![NPM Downloads](https://img.shields.io/npm/dm/orbyt.svg?style=for-the-badge&logo=npm&color=A78BFA&logoColor=0B0E14)](https://www.npmjs.com/package/orbyt)
+[![GitHub Stars](https://img.shields.io/github/stars/senapati484/orbyt.svg?style=for-the-badge&logo=github&color=38BDF8&logoColor=white)](https://github.com/senapati484/orbyt)
+[![License](https://img.shields.io/github/license/senapati484/orbyt.svg?style=for-the-badge&color=F5A623&logoColor=white)](https://github.com/senapati484/orbyt/blob/main/LICENSE)
+[![MCP Protocol](https://img.shields.io/badge/MCP-Model_Context_Protocol-8A2BE2?style=for-the-badge&logoColor=white)](https://modelcontextprotocol.io)
+
   <h3><b>into your AI's hands.</b></h3>
   <p>A single MCP server that proxies the component libraries that already speak MCP, adapts the ones that don't, and hands your AI assistant one consistent way to search, fetch, and install UI — instead of ten different tools with ten different shapes.</p>
 </div>
