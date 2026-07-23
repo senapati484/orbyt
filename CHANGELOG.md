@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.22] - 2026-07-23
+
+### Fixed
+- Updated README diagram image asset source.
+
 ## [0.1.21] - 2026-07-21
 
 ### Fixed
