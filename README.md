@@ -12,7 +12,7 @@
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/senapati484/orbyt/main/assets/diagram.svg" alt="Orbyt Ingestion Diagram" width="100%" />
+  <img width="1536" height="1024" alt="ChatGPT Image Jul 21, 2026 at 12_33_16 PM" src="https://github.com/user-attachments/assets/a74abd94-597a-4575-bf4c-bb10365dbe12" />
 </div>
 
 
