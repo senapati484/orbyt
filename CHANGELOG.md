@@ -2,16 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.24] - 2026-07-26
-
-### Fixed & Improved
-- Added automatic React + Vite + Tailwind project scaffolding to `npx orbyt init` when run in an uninitialized directory.
-- Added `importSnippet` and `exampleUsage` code properties to `install_component` tool output to guide AI agents on how to render installed components instantly.
-
 ## [0.1.23] - 2026-07-26
 
 ### Fixed & Improved
 - Enhanced `install_component` and `get_component` to automatically trigger on-demand component source fetching if files are missing or uncached.
+- Added `importSnippet` and `exampleUsage` code properties to `install_component` tool output to guide AI agents on how to render installed components instantly.
+- Added automatic React + Vite + Tailwind project scaffolding to `npx orbyt init` when run in an uninitialized directory.
 - Added direct HTTP registry fallback to Magic UI (`https://magicui.design/r/${slug}.json`) for 100% resilient source code fetching.
 - Removed artificial 15-item catalog limit in Aceternity adapter so all components can be searched instantly.
 - Added auto-creation of minimal `package.json` if dependencies are merged in uninitialized directories.
