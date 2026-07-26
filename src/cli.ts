@@ -19,9 +19,85 @@ async function main() {
 }
 
 async function init(client: string) {
+  await ensureMinimalProjectScaffold();
   await writeOrbytConfig();
   await writeClientConfig(client);
   console.log(`\nOrbyt is set up for ${client}. Restart your editor, then try:\n  "search for an animated pricing card"\n`);
+}
+
+async function ensureMinimalProjectScaffold() {
+  const pkgPath = path.join(cwd, "package.json");
+  try {
+    await readFile(pkgPath, "utf-8");
+  } catch {
+    console.log("\nNo package.json detected. Scaffolding minimal React + Tailwind + Vite starter structure...");
+
+    const pkg = {
+      name: path.basename(cwd) || "my-orbyt-app",
+      private: true,
+      version: "0.0.0",
+      type: "module",
+      scripts: {
+        dev: "vite",
+        build: "tsc && vite build",
+        preview: "vite preview"
+      },
+      dependencies: {
+        react: "^18.3.1",
+        "react-dom": "^18.3.1"
+      },
+      devDependencies: {
+        "@types/react": "^18.3.12",
+        "@types/react-dom": "^18.3.1",
+        "@vitejs/plugin-react": "^4.3.4",
+        autoprefixer: "^10.4.20",
+        postcss: "^8.4.49",
+        tailwindcss: "^3.4.16",
+        typescript: "^5.7.2",
+        vite: "^6.0.3"
+      }
+    };
+
+    await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
+
+    const tsconfig = {
+      compilerOptions: {
+        target: "ES2020",
+        useDefineForClassFields: true,
+        lib: ["ES2020", "DOM", "DOM.Iterable"],
+        module: "ESNext",
+        skipLibCheck: true,
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        resolveJsonModule: true,
+        isolatedModules: true,
+        noEmit: true,
+        jsx: "react-jsx",
+        strict: true,
+        baseUrl: ".",
+        paths: {
+          "@/*": ["./src/*"]
+        }
+      },
+      include: ["src"]
+    };
+    await writeFile(path.join(cwd, "tsconfig.json"), JSON.stringify(tsconfig, null, 2) + "\n", "utf-8");
+
+    await mkdir(path.join(cwd, "src"), { recursive: true });
+    const mainTsx = `import React from "react";\nimport ReactDOM from "react-dom/client";\nimport App from "./App";\nimport "./index.css";\n\nReactDOM.createRoot(document.getElementById("root")!).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);\n`;
+    await writeFile(path.join(cwd, "src", "main.tsx"), mainTsx, "utf-8");
+
+    const appTsx = `import React from "react";\n\nexport default function App() {\n  return (\n    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-8">\n      <h1 className="text-3xl font-bold tracking-tight mb-2">🪐 Orbyt React App</h1>\n      <p className="text-slate-400">Ask your AI assistant to search and install any UI component!</p>\n    </main>\n  );\n}\n`;
+    await writeFile(path.join(cwd, "src", "App.tsx"), appTsx, "utf-8");
+
+    const indexCss = `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n`;
+    await writeFile(path.join(cwd, "src", "index.css"), indexCss, "utf-8");
+
+    const indexHtml = `<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>Orbyt App</title>\n  </head>\n  <body class="bg-slate-950 text-slate-100">\n    <div id="root"></div>\n    <script type="module" src="/src/main.tsx"></script>\n  </body>\n</html>\n`;
+    await writeFile(path.join(cwd, "index.html"), indexHtml, "utf-8");
+
+    console.log("Scaffolded minimal React + Vite + Tailwind project with @/* path alias.");
+  }
 }
 
 async function prompt(question: string, defaultValue: string): Promise<string> {

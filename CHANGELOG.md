@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.24] - 2026-07-26
+
+### Fixed & Improved
+- Added automatic React + Vite + Tailwind project scaffolding to `npx orbyt init` when run in an uninitialized directory.
+- Added `importSnippet` and `exampleUsage` code properties to `install_component` tool output to guide AI agents on how to render installed components instantly.
+
 ## [0.1.23] - 2026-07-26
 
 ### Fixed & Improved

@@ -189,15 +189,26 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
         tailwindConfigUpdate = component.tailwind;
       }
 
+      const componentSlug = id.split("/")[1] || id;
+      const componentNameNoExt = componentSlug.replace(/\.(tsx|jsx|js|ts)$/, "");
+      const pascalName = componentNameNoExt
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join("");
+
+      const importSnippet = `import { ${pascalName} } from "${baseAlias}/${componentNameNoExt}";`;
+
       return textResult({
         componentId: id,
         dryRun,
+        importSnippet,
+        exampleUsage: `<${pascalName} className="p-6">Installed with Orbyt</${pascalName}>`,
         files: filesReport,
         dependencies: dependenciesReport,
         tailwindConfigAdditions: tailwindConfigUpdate,
         message: dryRun
           ? "This is a dry-run. No files or package dependencies were actually written."
-          : "Component successfully installed.",
+          : `Component successfully installed. Import it in your page using: ${importSnippet}`,
       });
     }
   );
