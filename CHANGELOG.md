@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.23] - 2026-07-26
+
+### Fixed & Improved
+- Enhanced `install_component` and `get_component` to automatically trigger on-demand component source fetching if files are missing or uncached.
+- Added direct HTTP registry fallback to Magic UI (`https://magicui.design/r/${slug}.json`) for 100% resilient source code fetching.
+- Removed artificial 15-item catalog limit in Aceternity adapter so all components can be searched instantly.
+- Added auto-creation of minimal `package.json` if dependencies are merged in uninitialized directories.
+- Improved Fuse.js search recall with `ignoreLocation` and `id` key weighting.
+
 ## [0.1.22] - 2026-07-23
 
 ### Fixed

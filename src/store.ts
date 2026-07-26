@@ -88,12 +88,14 @@ export class OrbytStore {
 
     const fuse = new Fuse(components, {
       keys: [
+        { name: "id", weight: 4 },
         { name: "name", weight: 3 },
         { name: "category", weight: 2 },
         { name: "tags", weight: 2 },
         { name: "sourceLib", weight: 1 },
       ],
-      threshold: 0.4,
+      threshold: 0.6,
+      ignoreLocation: true,
       includeScore: true,
     });
 

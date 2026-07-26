@@ -61,16 +61,18 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
     { id: z.string() },
     async ({ id }) => {
       let component = await store.get(id);
+      const sourceLib = id.split("/")[0];
+      const source = sources.find((s) => s.name === sourceLib);
 
-      if (!component) {
-        const sourceLib = id.split("/")[0];
-        const source = sources.find((s) => s.name === sourceLib);
-        if (source) {
+      if ((!component || component.files.length === 0) && source) {
+        try {
           const fetched = await source.fetchComponent(id);
           if (fetched) {
             await store.upsert(fetched);
             component = fetched;
           }
+        } catch (err) {
+          console.error(`[orbyt] On-demand fetch failed for ${id}:`, err);
         }
       }
 
@@ -83,7 +85,7 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
 
   server.tool(
     "install_component",
-    "Write a component's files into the target project, merge dependencies, and report Tailwind config updates.",
+    "Write a component's files into the target project, merge dependencies into package.json, and report Tailwind config updates. If files are not embedded, returns native CLI command and source URL for execution.",
     {
       id: z.string(),
       targetPath: z.string().optional().describe("Defaults to the configured components alias, e.g. '@/components/ui'"),
@@ -91,9 +93,24 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
       acknowledgeLicense: z.boolean().optional().describe("Acknowledge installation of a component with a non-permissive license"),
     },
     async ({ id, targetPath, dryRun = false, acknowledgeLicense = false }) => {
-      const component = await store.get(id);
+      let component = await store.get(id);
+      const sourceLib = id.split("/")[0];
+      const source = sources.find((s) => s.name === sourceLib);
+
+      if ((!component || component.files.length === 0) && source) {
+        try {
+          const fetched = await source.fetchComponent(id);
+          if (fetched) {
+            await store.upsert(fetched);
+            component = fetched;
+          }
+        } catch (err) {
+          console.error(`[orbyt] On-demand fetch during install failed for ${id}:`, err);
+        }
+      }
+
       if (!component) {
-        return textResult({ error: `"${id}" isn't in the index yet — run get_component first.` });
+        return textResult({ error: `"${id}" isn't in the index yet and could not be fetched automatically.` });
       }
 
       // Framework mismatch check
@@ -124,7 +141,13 @@ export function registerTools(server: McpServer, opts: { config: OrbytConfig; st
 
       if (component.files.length === 0) {
         return textResult({
-          error: `"${id}" has no file contents cached (this is common for proxy sources whose own MCP server installs files itself, e.g. shadcn). Use that source's native install command instead: ${component.installCommand ?? "none provided"}.`,
+          componentId: id,
+          status: "native_install_required",
+          installCommand: component.installCommand ?? `npx shadcn@latest add ${id.split("/")[1]}`,
+          sourceUrl: component.sourceUrl,
+          dependencies: component.dependencies,
+          tailwindConfigAdditions: component.tailwind ?? null,
+          message: `"${id}" uses a native CLI installer. Run the installCommand in your terminal or fetch sourceUrl directly.`
         });
       }
 
@@ -303,8 +326,18 @@ async function mergePackageJsonDeps(cwd: string, deps: string[], dryRun = false)
   if (deps.length === 0) return report;
 
   try {
-    const raw = await readFile(pkgPath, "utf-8");
-    const pkg = JSON.parse(raw);
+    let pkg: any = {};
+    try {
+      const raw = await readFile(pkgPath, "utf-8");
+      pkg = JSON.parse(raw);
+    } catch {
+      pkg = {
+        name: path.basename(cwd) || "app",
+        private: true,
+        version: "0.0.0",
+        dependencies: {},
+      };
+    }
     pkg.dependencies ??= {};
 
     const resolvedDeps = await Promise.all(

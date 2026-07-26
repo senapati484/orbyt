@@ -25,36 +25,31 @@ export class AceternityAdapter implements OrbytSource {
         return [];
       }
 
-      const indexData = (await res.json()) as { items?: Array<{ name: string; type: string }> };
+      const indexData = (await res.json()) as { items?: Array<{ name: string; title?: string; type?: string; description?: string }> };
       const items = indexData.items ?? [];
 
-      // Filter based on query if provided
-      let filteredItems = items;
-      if (query) {
-        const q = query.toLowerCase();
-        filteredItems = items.filter(
-          (item) => item.name.toLowerCase().includes(q)
-        );
-      }
+      return items.map((item) => {
+        const id = `${this.name}/${item.name}`;
+        const sourceUrl = new URL(`/components/${item.name}`, this.config.baseUrl).toString();
+        const registryJsonUrl = new URL(`/registry/${item.name}.json`, this.config.baseUrl).toString();
 
-      // Limit concurrency and total fetches to avoid slamming the server/rate limits
-      const limit = filteredItems.slice(0, 15);
-      const components: OrbytComponent[] = [];
-
-      await Promise.all(
-        limit.map(async (item) => {
-          try {
-            const comp = await this.fetchComponent(`${this.name}/${item.name}`);
-            if (comp) {
-              components.push(comp);
-            }
-          } catch (err) {
-            console.error(`[orbyt] Failed to fetch Aceternity component details for ${item.name}:`, err);
-          }
-        })
-      );
-
-      return components;
+        return {
+          id,
+          name: item.title || item.name.replace(/-/g, " "),
+          sourceLib: this.name,
+          category: item.type || "registry:ui",
+          tags: ["animated", "card", "hero", "button", "aceternity", item.name],
+          framework: "react",
+          style: "tailwind",
+          dependencies: [],
+          files: [],
+          installCommand: `npx shadcn@latest add ${registryJsonUrl}`,
+          previewImage: null,
+          license: "MIT",
+          sourceUrl,
+          fetchedAt: new Date().toISOString(),
+        };
+      });
     } catch (err) {
       console.error("[orbyt] Aceternity fetchCatalog failed:", err);
       return [];
